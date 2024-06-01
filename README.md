@@ -47,7 +47,7 @@ python main.py --dataset Ldataset -- epochs 60 --batch 4096 --decay 0.99 --lr 0.
 
 - [Fdataset](https://github.com/BioinformaticsCSU/BNNR)/Gdataset (Gottlied et.)
   - Gottlieb A, Stein GY, Ruppin E, et al. PREDICT: a method for inferring novel drug indications with application to personalized medicine. Mol Syst Biol 2011;7:496.
-- [Cdataset]((https://github.com/BioinformaticsCSU/BNNR))
+- [Cdataset](https://github.com/BioinformaticsCSU/BNNR))
   - Luo H, Wang J, Li M, et al. Drug repositioning based on comprehensive similarity measures and bi-random walk algorithm. Bioinformatics 2016;32:2664–71.
 - [LRSSL](https://github.com/linwang1982/DRIMC)
   - Liang X, Zhang P, Yan L, et al. LRSSL: predict and interpret drug–disease associations based on data integration using sparse subspace learning. Bioinformatics 2017;33:1187–96.
