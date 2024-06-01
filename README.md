@@ -1,7 +1,7 @@
 # MDGCN
 > > Multi-Dependency Graph Convolutional Network with Cross-View Contrastive Learning for Drug Repositioning
 
-## Golden Standard Datasets
+## Datasets
 
 - Fdataset/Gdataset (Gottlied et.)
   - Gottlieb A, Stein GY, Ruppin E, et al. PREDICT: a method for inferring novel drug indications with application to personalized medicine. Mol Syst Biol 2011;7:496.
@@ -12,14 +12,15 @@
 - Ldataset/LAGCN
   - Yu Z, Huang F, Zhao X, et al. Predicting drug–disease associations through layer attention graph convolutional network. Brief Bioinform 2020;22:1–11.
 
-### Description of DRHGCN
+### Description
+> Excerpt from DRHGCN
 
 * Fdataset and Cdataset https://github.com/BioinformaticsCSU/BNNR
 * LRSSL https://github.com/linwang1982/DRIMC
 * Ldataset https://github.com/storyandwine/LAGCN
 * HDVD https://github.com/luckymengmeng/SCPMF
 
-### Details of dataset
+### Details
 > Data below can be downloaded from [AdaDR](https://github.com/xinliangSun/AdaDR/tree/main/AdaDR/raw_data/drug_data)
 
 | Dataset          | No. of Drugs | No. of Diseases | No. of Associations | Sparsity   |
@@ -38,8 +39,8 @@ During the 10-fold cross-validation, all known and unknown drug–disease associ
 are randomly divided into 10 exclusive subsets of approximately equal size, respectively.
 Each subset is treated as the testing set in turn,
 while the remaining nine subsets are used as the training set.
-Then, the area under the receiver operating characteristic curve (AUROC)
-and the area under the precision-recall curve (AUPRC) are adopted to measure the overall performance of model.
+Then, the area under the receiver operating characteristic curve (AU-ROC)
+and the area under the precision-recall curve (AU-PRC) are adopted to measure the overall performance of model.
 
 ## Predicting indications for new drugs
 

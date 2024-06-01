@@ -23,12 +23,12 @@ class DataHandler(object):
         self.num_neighbor = args.topK
         print("Starting processing ...")
         self.dir = _paths[args.dataset]
-        # if os.path.exists(os.path.join(self.dir, 'data.npy')):
-        #     self.data = np.load(os.path.join(self.dir, 'data.npy'), allow_pickle=True)
-        # else:
-        #     self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
-        #     np.save(os.path.join(self.dir, 'data.npy'), self.data)
-        self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
+        if os.path.exists(os.path.join(self.dir, 'data.npy')):
+            self.data = np.load(os.path.join(self.dir, 'data.npy'), allow_pickle=True)
+        else:
+            self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
+            np.save(os.path.join(self.dir, 'data.npy'), self.data)
+        # self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
 
     def load_data(self, file_path, data_name):
         association_matrix = None

@@ -170,7 +170,7 @@ class Hope:
             self.test_auroc.append(AUROC)
             self.test_aupr.append(AUPR)
             self.adjust_learning_rate()
-            if AUROC > best_auroc:
+            if AUROC >= best_auroc:
                 best_epoch, best_auroc, best_aupr = e, AUROC, AUPR
                 # self.save_model()
             AUROC_lis.append(AUROC)
@@ -190,20 +190,17 @@ class Hope:
 
 
 if __name__ == '__main__':
-    # hyper parameters
-    # print(args)
     dataset = args.dataset
     dataHandler = DataHandler()
-    results_dict = {'ep': [], 'auroc': [], 'aupr': []}  # 3*10*10
-    max_results_dict = {'fold': [], 'ep': [], 'auroc': [], 'aupr': []}  # 4*10 best fold of every times
-    times = 2
-    folds = 2
-    for time in range(0, times):
-        print("********************** time", str(time + 1), "**************************************************************************")
+    # results_dict = {'ep': [], 'auroc': [], 'aupr': []}  # 3*10*10
+    # max_results_dict = {'fold': [], 'ep': [], 'auroc': [], 'aupr': []}  # 4*10 best fold of every times
+    for time in range(1, 11):
+        print("********************** time", str(time), "**************************************************************************")
         time_results = {'ep': [], 'auroc': [], 'aupr': []}
-        for fold in range(0, folds):
-            print("======================== fold", str(fold + 1), "=============================================")
-            data = dataHandler.data[0][fold]
+        for fold in range(1, 11):
+            print("======================== fold", str(fold), "=============================================")
+            data = dataHandler.data[0][fold-1]
+            # data = dataHandler.data[0][0]
             distanceMat = [dataHandler.data[1], dataHandler.data[2], data[-1]]
             hope = Hope(data, distanceMat)
             ep, auroc, aupr = hope.run()
@@ -211,25 +208,23 @@ if __name__ == '__main__':
             time_results['ep'].append(ep)  # 10
             time_results['auroc'].append(auroc)
             time_results['aupr'].append(aupr)
-        results_dict['ep'].append(time_results['ep'])  # 10*10
-        results_dict['auroc'].append(time_results['auroc'])
-        results_dict['aupr'].append(time_results['aupr'])
-        
         max_fold = np.argmax(time_results['auroc'])  # 1
         max_ep = time_results['ep'][max_fold]
         max_auroc = time_results['auroc'][max_fold]
         max_aupr = time_results['aupr'][max_fold]
-
-        max_results_dict['fold'].append(max_fold+1)  # 1*10
-        max_results_dict['ep'].append(max_ep)
-        max_results_dict['auroc'].append(max_auroc)
-        max_results_dict['aupr'].append(max_aupr)
-        
-    results_df = pd.DataFrame(results_dict)
-    results_df.to_csv(os.path.join('result', args.dataset + '_10times_10folds.csv'), index=False)
-    max_results_df = pd.DataFrame(max_results_dict)
-    max_results_df.to_csv(os.path.join('result', args.dataset + '_10times_best_folds.csv'), index=False)
-
-    print("********************************************************************************************************")
-    log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.4f}±{np.std(max_results_dict['auroc']):.4f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.4f}±{np.std(max_results_dict['aupr']):.4f}")
-    log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.3f}±{np.std(max_results_dict['auroc']):.3f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.3f}±{np.std(max_results_dict['aupr']):.3f}")
+        log("max fold = %d, AUROC= %.4f, AUPR=%.4f" % (max_fold, max_auroc, max_aupr))
+        # results_dict['ep'].append(time_results['ep'])  # 10*10
+        # results_dict['auroc'].append(time_results['auroc'])
+        # results_dict['aupr'].append(time_results['aupr'])
+        # max_results_dict['fold'].append(max_fold+1)  # 1*10
+        # max_results_dict['ep'].append(max_ep)
+        # max_results_dict['auroc'].append(max_auroc)
+        # max_results_dict['aupr'].append(max_aupr)
+    # results_df = pd.DataFrame(results_dict)
+    # results_df.to_csv(os.path.join('result', args.dataset + '_10times_10folds.csv'), index=False)
+    # max_results_df = pd.DataFrame(max_results_dict)
+    # max_results_df.to_csv(os.path.join('result', args.dataset + '_10times_best_folds.csv'), index=False)
+    #
+    # print("********************************************************************************************************")
+    # log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.4f}±{np.std(max_results_dict['auroc']):.4f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.4f}±{np.std(max_results_dict['aupr']):.4f}")
+    # log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.3f}±{np.std(max_results_dict['auroc']):.3f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.3f}±{np.std(max_results_dict['aupr']):.3f}")
