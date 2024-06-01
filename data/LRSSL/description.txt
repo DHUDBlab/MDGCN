@@ -1,0 +1,2 @@
+AdaDR：dis_sim.txt 、drug_dis.txt、drug_sim.txt
+DRAGNN：lrssl_admat_dgc.txt、lrssl_simmat_dc_chemical.txt、lrssl_simmat_dc_domain.txt、lrssl_simmat_dc_go.txt、lrssl_simmat_dg.txt（lrssl_simmat_dc_chemical.txt、lrssl_simmat_dc_domain.txt、lrssl_simmat_dc_go.txt are three different similarity of drugs' feature）
