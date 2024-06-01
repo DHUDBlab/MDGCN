@@ -90,7 +90,7 @@ class Hope:
         savePath = r'./Model/' + dataset + r'/' + ModelName + r'.pth'
         params = {
             'model': self.model,
-            'epoch': self.curEpoch,
+            'epoch': self.cur_Epoch,
             'args': args,
             'opt': self.opt,
             'history': history
@@ -100,7 +100,7 @@ class Hope:
 
     def load_model(self, modelPath):
         checkpoint = t.load(r'./Model/' + dataset + r'/' + modelPath + r'.pth')
-        self.curEpoch = checkpoint['epoch'] + 1
+        self.cur_Epoch = checkpoint['epoch'] + 1
         self.model = checkpoint['model']
         self.args = checkpoint['args']
         self.opt = checkpoint['opt']
@@ -155,13 +155,13 @@ class Hope:
 
     def run(self):
         self.prepare_model()
-        self.curEpoch = 0
+        self.cur_Epoch = 0
         best_auroc = -1
         best_aupr = -1
         best_epoch = -1
         AUROC_lis = []
         for e in range(args.epochs + 1):
-            self.curEpoch = e
+            self.cur_Epoch = e
             loss = self._train()
             AUROC, AUPR = self._test()
             log("epoch %d/%d, loss=%.4f, AUROC=%.4f, AUPR=%.4f" % (e, args.epochs, loss, AUROC, AUPR))
@@ -170,8 +170,10 @@ class Hope:
             self.test_auroc.append(AUROC)
             self.test_aupr.append(AUPR)
             self.adjust_learning_rate()
-            if AUROC >= best_auroc:
-                best_epoch, best_auroc, best_aupr = e, AUROC, AUPR
+            cur_AUROC = round(AUROC, 4)
+            cur_AUPR = round(AUPR, 4)
+            if cur_AUROC > round(best_auroc, 4) or cur_AUROC == round(best_auroc, 4) and cur_AUPR > round(best_aupr, 4):
+                best_epoch, best_auroc, best_aupr = e, cur_AUROC, cur_AUPR
                 # self.save_model()
             AUROC_lis.append(AUROC)
             """
