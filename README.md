@@ -1,5 +1,5 @@
 # MDGCN
-> > Multi-Dependency Graph Convolutional Network with Cross-View Contrastive Learning for Drug Repositioning
+> Multi-Dependency Graph Convolutional Network with Cross-View Contrastive Learning for Drug Repositioning
 
 ## Datasets
 
