@@ -23,14 +23,12 @@ class DataHandler(object):
         self.num_neighbor = args.topK
         print("Starting processing ...")
         self.dir = _paths[args.dataset]
-        if os.path.exists(os.path.join(self.dir, 'data.npy')):
-            self.data = np.load(os.path.join(self.dir, 'data.npy'), allow_pickle=True)
-        else:
-            self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
-            np.save(os.path.join(self.dir, 'data.npy'), self.data)
-        # self.drugDistanceMat, self.disDistanceMat = self.make_homo_graph()  # knn graph
-        # self.drug_feat, self.dis_feat = self._generate_feat()  # for graph to encode
-        # self.cv_graph_data = self._generate_topoy_graph()
+        # if os.path.exists(os.path.join(self.dir, 'data.npy')):
+        #     self.data = np.load(os.path.join(self.dir, 'data.npy'), allow_pickle=True)
+        # else:
+        #     self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
+        #     np.save(os.path.join(self.dir, 'data.npy'), self.data)
+        self.data = self.load_data(self.dir, args.dataset)  # trainMat, testMat, heteroMat
 
     def load_data(self, file_path, data_name):
         association_matrix = None

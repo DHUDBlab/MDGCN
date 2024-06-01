@@ -1,3 +1,4 @@
+import pandas as pd
 import torch as t
 import torch.nn as nn
 import torch.optim as optim
@@ -55,25 +56,24 @@ class Hope:
             for param_group in self.opt.param_groups:
                 param_group['lr'] = max(param_group['lr'] * args.decay, args.min_lr)
 
-    def get_model_name(self):
-        title = "DrugRep" + "_"
-        ModelName = title + args.dataset + "_" + modelUTCStr + \
-                    "_decay_" + str(args.decay) + \
-                    "_lr_" + str(args.lr) + \
-                    "_layers_" + str(args.layers) + \
-                    "_rank_" + str(args.rank) + \
-                    "_topK_" + str(args.topK) + \
-                    "_ssl_reg_r_" + str(args.ssl_reg_r) + \
-                    "_ssl_reg_d_" + str(args.ssl_reg_d) + \
-                    "_hide_dim_" + str(args.hide_dim)
-        return ModelName
+    def get_model_params(self):
+        # title = "DrugRep" + "_"
+        ModelParams = args.dataset + " | " + \
+                    "decay_" + str(args.decay) + " | " + \
+                    "lr_" + str(args.lr) + " | " + \
+                    "layers_" + str(args.layers) + " | " + \
+                    "rank_" + str(args.rank) + " | " + \
+                    "topK_" + str(args.topK) + " | " + \
+                    "ssl_reg_r_" + str(args.ssl_reg_r) + " | " + \
+                    "ssl_reg_d_" + str(args.ssl_reg_d)
+        return ModelParams
 
     def save_history(self):
         history = dict()
         history['loss'] = self.train_loss
         history['auroc'] = self.test_auroc
         history['aupr'] = self.test_aupr
-        ModelName = self.get_model_name()
+        ModelName = self.get_model_params()
 
         # make history dir (exist_ok=True will not make dir)
         history_folder = './History/' + dataset + '/'
@@ -82,7 +82,7 @@ class Hope:
             pickle.dump(history, fs)
 
     def save_model(self):
-        ModelName = self.get_model_name()
+        ModelName = self.get_model_params()
         history = dict()
         history['loss'] = self.train_loss
         history['auroc'] = self.test_auroc
@@ -160,7 +160,6 @@ class Hope:
         best_aupr = -1
         best_epoch = -1
         AUROC_lis = []
-        log("**************************************************************")
         for e in range(args.epochs + 1):
             self.curEpoch = e
             loss = self._train()
@@ -179,16 +178,15 @@ class Hope:
             self.save_history()
             if wait==self.args.patience:
                 log('Early stop! best epoch = %d'%(best_epoch))
-                # self.load_model(self.get_model_name())
+                # self.load_model(self.get_model_params())
                 break
             """
-        print("*****************************")
+        # log("------------------------------------------------------")
+        print('params: ' + self.get_model_params())
         log("best epoch = %d, AUROC= %.4f, AUPR=%.4f" % (best_epoch, best_auroc, best_aupr))
         # log("best epoch = %d, AUROC= %.3f, AUPR=%.3f" % (best_epoch, best_auroc, best_aupr))
-        print("*****************************")
-        print(args)
-        print('ModelName = ' + modelName)
-        return best_auroc, best_aupr
+        # log("------------------------------------------------------")
+        return best_epoch, best_auroc, best_aupr
 
 
 if __name__ == '__main__':
@@ -196,25 +194,42 @@ if __name__ == '__main__':
     # print(args)
     dataset = args.dataset
     dataHandler = DataHandler()
-    # 创建一个字典来存储每次times和每次cv的性能指标
-    # results_dict = {'time': [], 'cv': [], 'auroc': [], 'aupr': []}
-    times = 1
-    cvs = 9
+    results_dict = {'ep': [], 'auroc': [], 'aupr': []}  # 3*10*10
+    max_results_dict = {'fold': [], 'ep': [], 'auroc': [], 'aupr': []}  # 4*10 best fold of every times
+    times = 2
+    folds = 2
     for time in range(0, times):
-        print("++++++++++++++++++ times", str(time + 1), "++++++++++++++++++++++")
-        for cv in range(8, cvs):
-            print("=============== " + str(cv + 1) + " =================")
-            data = dataHandler.data[0][cv]
+        print("********************** time", str(time + 1), "**************************************************************************")
+        time_results = {'ep': [], 'auroc': [], 'aupr': []}
+        for fold in range(0, folds):
+            print("======================== fold", str(fold + 1), "=============================================")
+            data = dataHandler.data[0][fold]
             distanceMat = [dataHandler.data[1], dataHandler.data[2], data[-1]]
             hope = Hope(data, distanceMat)
-            modelName = hope.get_model_name()
-            print('ModelName = ' + modelName)
-            auroc, aupr = hope.run()
+            ep, auroc, aupr = hope.run()
+            # record result
+            time_results['ep'].append(ep)  # 10
+            time_results['auroc'].append(auroc)
+            time_results['aupr'].append(aupr)
+        results_dict['ep'].append(time_results['ep'])  # 10*10
+        results_dict['auroc'].append(time_results['auroc'])
+        results_dict['aupr'].append(time_results['aupr'])
+        
+        max_fold = np.argmax(time_results['auroc'])  # 1
+        max_ep = time_results['ep'][max_fold]
+        max_auroc = time_results['auroc'][max_fold]
+        max_aupr = time_results['aupr'][max_fold]
 
-    #         results_dict['time'].append(time+1)
-    #         results_dict['cv'].append(cv+1)
-    #         results_dict['auroc'].append(auroc)
-    #         results_dict['aupr'].append(aupr)
-    # results_df = pd.DataFrame(results_dict)
-    # results_df.to_csv(os.path.join('result', args.dataset + '_10times10cv.csv'), index=False)
-    # log(f"Mean AUC: {np.mean(results_dict['auroc']):.4f}±{np.std(results_dict['auroc']):.4f}, Mean AUPR: {np.mean(results_dict['aupr']):.4f}±{np.std(results_dict['aupr']):.4f}")
+        max_results_dict['fold'].append(max_fold+1)  # 1*10
+        max_results_dict['ep'].append(max_ep)
+        max_results_dict['auroc'].append(max_auroc)
+        max_results_dict['aupr'].append(max_aupr)
+        
+    results_df = pd.DataFrame(results_dict)
+    results_df.to_csv(os.path.join('result', args.dataset + '_10times_10folds.csv'), index=False)
+    max_results_df = pd.DataFrame(max_results_dict)
+    max_results_df.to_csv(os.path.join('result', args.dataset + '_10times_best_folds.csv'), index=False)
+
+    print("********************************************************************************************************")
+    log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.4f}±{np.std(max_results_dict['auroc']):.4f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.4f}±{np.std(max_results_dict['aupr']):.4f}")
+    log(f"Mean AUC: {np.mean(max_results_dict['auroc']):.3f}±{np.std(max_results_dict['auroc']):.3f}, Mean AUPR: {np.mean(max_results_dict['aupr']):.3f}±{np.std(max_results_dict['aupr']):.3f}")
