@@ -15,7 +15,7 @@ import torch.utils.data as dataloader
 from data import DataHandler
 from model import MODEL
 # from args import make_args
-from utils import log, MyTransData, ssl_loss, Colors, metaregular
+from utils import log, MyTransData, ssl_loss, Colors
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 modelUTCStr = str(int(time.time()))
@@ -28,13 +28,13 @@ def make_args():
     parser.add_argument('--dataset', type=str, default='lrssl')
     parser.add_argument('--batch', type=int, default=8192, metavar='N', help='input batch size for training')
     parser.add_argument('--seed', type=int, default=123, metavar='int', help='random seed')
-    parser.add_argument('--epochs', type=int, default=70, metavar='N', help='number of epochs to train')
+    parser.add_argument('--epochs', type=int, default=0, metavar='N', help='number of epochs to train')
     parser.add_argument('--hide_dim', type=int, default=64, metavar='N', help='embedding size')
     parser.add_argument('--min_lr', type=float, default=0.0001)
 
     parser.add_argument('--decay', type=float, default=0.99, metavar='LR_decay', help='decay')
     parser.add_argument('--lr', type=float, default=0.055, metavar='LR', help='learning rate')
-    parser.add_argument('--layers', type=int, default=8, help='the numbers of GCN layer')
+    parser.add_argument('--layers', type=int, default=9, help='the numbers of GCN layer')
     parser.add_argument('--rank', type=int, default=6, help='the dimension of low rank matrix decomposition')
     parser.add_argument('--topK', type=int, default=6, help='num_neighbor')
 
@@ -151,16 +151,14 @@ class Hope:
             drugs = drugs.long().cuda()
             diseases = diseases.long().cuda()
             labels = labels.cuda().float()
+            self.ifTraining = True
             # GET Embedding
-            drugEmbed, disEmbed, rd_drugEmbedAll, rd_disEmbedAll, rd_drugEmbed, rd_disEmbed = self.model(norm=1)
-            # Regularization: the constraint of transformed reasonableness
-            reg_loss_r = metaregular((rd_drugEmbed[drugs.cpu().numpy()]), drugEmbed, self.rrMat[drugs.cpu().numpy()])
-            reg_loss_d = metaregular((rd_disEmbed[diseases.cpu().numpy()]), disEmbed, self.ddMat[diseases.cpu().numpy()])
-            meta_reg_loss = (reg_loss_r + reg_loss_d) / 2.0
+            drugEmbed, disEmbed, rd_drugEmbedAll, rd_disEmbedAll, rd_drugEmbed, rd_disEmbed, meta_reg_loss = self.model(self.ifTraining, drugs, diseases, norm=1)
             # Contrastive Learning of collaborative relations
             ssl_loss_drug = ssl_loss(rd_drugEmbed, drugEmbed, drugs, self.args.ssl_temp)
             ssl_loss_dis = ssl_loss(rd_disEmbed, disEmbed, diseases, self.args.ssl_temp)
-            ssl_loss_all = args.ssl_reg_r * ssl_loss_drug + args.ssl_reg_d * ssl_loss_dis
+            ssl_loss_all = args.ssl_reg_r * ssl_loss_drug \
+                    + args.ssl_reg_d * ssl_loss_dis
 
             # prediction
             preds = self.predict_model(rd_drugEmbedAll[drugs], rd_disEmbedAll[diseases])
@@ -185,7 +183,8 @@ class Hope:
             did = np.arange(0, self.disNum)
             pairs, labels = tuple([self.testMat.row, self.testMat.col]), self.testMat.data
             test_r, test_d = pairs
-            _, _, rd_drugEmbed, rd_disEmbed, _, _ = self.model(norm=1)
+            self.ifTraining = False
+            _, _, rd_drugEmbed, rd_disEmbed, _, _, _ = self.model(self.ifTraining, rid, did, norm=1)
             preds = self.predict_model(rd_drugEmbed[test_r], rd_disEmbed[test_d], isTest=True).detach().cpu()
             epAuc, epAupr = roc_auc_score(labels, preds), average_precision_score(labels, preds)
             return epAuc, epAupr
