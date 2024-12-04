@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="lishengnan@172.27.46.147:22 password (41)" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+    <option name="confirmBeforeUploading" value="false" />
+    <serverData>
+      <paths name="lishengnan@172.27.46.147:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/lishengnan/hly/MDGCN" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="lishengnan@172.27.46.147:22 password (41)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/lishengnan/MyCode/DrugRep_v3" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
