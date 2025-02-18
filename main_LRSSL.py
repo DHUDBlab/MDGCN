@@ -192,11 +192,8 @@ class Hope:
             self.ifTraining = True
             # GET Embedding
             drugEmbed, disEmbed, rd_drugEmbedAll, rd_disEmbedAll, rd_drugEmbed, rd_disEmbed, meta_reg_loss, all_rd_embeddings = self.model(
-                self.ifTraining, drugs, diseases, norm=1)  # 这里输出比以前多后面三个
-
+                self.ifTraining, drugs, diseases, norm=1)
             # Contrastive Learning of collaborative relations
-            ############### 新加的
-            # 自己和自己对比
             initial_emb1 = all_rd_embeddings[0]
             context_emb1 = all_rd_embeddings[self.args.layers]
             ssl1_loss = self.ssl1_layer_loss(context_emb1, initial_emb1, drugs, diseases)
@@ -204,14 +201,10 @@ class Hope:
             # initial_emb2 = all_rd_embeddings[0]
             # context_emb2 = all_rd_embeddings[4]
             # ssl2_loss = self.ssl1_layer_loss(context_emb2, initial_emb2, drugs, diseases)
-            ###############
 
             ssl_loss_drug = ssl_loss(rd_drugEmbed, drugEmbed, drugs, self.args.ssl_temp)
             ssl_loss_dis = ssl_loss(rd_disEmbed, disEmbed, diseases, self.args.ssl_temp)
             ssl_loss_all = self.args.new1 * (args.ssl_reg_r * ssl_loss_drug + args.ssl_reg_d * ssl_loss_dis + self.args.new2 * ssl1_loss)
-            # 参数1：0.6或0.7最好，对正确率和AUPR影响很大，越小收敛越慢（多调这个）； 参数2：0.01最好（这两个参数都是分开调的，组合起来不一定是最好）
-
-
             # common_loss_drug = common_loss(rd_drugEmbed[drugs], drugEmbed[drugs])
             # common_loss_dis = common_loss(rd_disEmbed[diseases], disEmbed[diseases])
             # common_loss_all = args.com_reg_r * common_loss_drug + args.com_reg_d * common_loss_dis
