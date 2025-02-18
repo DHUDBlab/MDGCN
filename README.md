@@ -1,0 +1,1 @@
+The codes of MDGCN are implemented and tested under the following development environment: **Python=3.7.16 | Torch=1.10.0+cu113 | Numpy=1.21.6 | Scipy=1.6.0**
