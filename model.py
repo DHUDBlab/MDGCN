@@ -76,7 +76,6 @@ class MODEL(nn.Module):
             'dis_emb': t.nn.Embedding(dis_num, hide_dim).cuda(),
         })
 
-        # 在模型初始化时添加SE模块
         self.se_rd = SEBlock(in_channels=64, reduction=16)
 
     def self_gating_r(self, em):
@@ -122,8 +121,6 @@ class MODEL(nn.Module):
     #     return trans_drugEmbed, trans_disEmbed
 
     def forward(self, ifTraining, uid, iid, norm=1):
-
-        # 1，制作最初的3个嵌入
         dis_index = np.arange(0, self.dis_num)
         drug_index = np.arange(0, self.drug_num)
         rd_index = np.array(drug_index.tolist() + [i + self.drug_num for i in dis_index])  # 1444
@@ -157,17 +154,14 @@ class MODEL(nn.Module):
                 disEmbeddings0 = gcn(disEmbeddings, self.ddMat, dis_index)
                 rdEmbeddings0 = gcn(rdEmbeddings, self.rdMat, rd_index)
 
-            # 执行SE模块(对整体准确率稍稍提升，对提升aupr有用，但增加复杂度，用的时候直接取消注释就好，只用第一个，其他两个差)
             #  rdEmbeddings0 = self.se_rd(rdEmbeddings0)  # 1
             # rdEmbeddings0 = self.se_rd(drugEmbeddings)  # 2
             # rdEmbeddings0 = self.se_rd(disEmbeddings)  # 3
 
             rd_random_noise = t.rand_like(rdEmbeddings0).cuda()
             rdEmbeddings0 += t.sign(rdEmbeddings0) * F.normalize(rd_random_noise, dim=-1) * self.args.eps
-            # 2.2每一层GCN中都将卷积后的大矩阵分割成2部分，分别加到药物和疾病嵌入上
             rd_drugEmbedding0, rd_disEmbedding0 = t.split(rdEmbeddings0, [self.drug_num, self.dis_num])
 
-            # 调这个权重没啥用，但有影响
             drugEd = (0.5 * drugEmbeddings0 + 0.5 * rd_drugEmbedding0)
             disEd = (0.5 * disEmbeddings0 + 0.5 * rd_disEmbedding0)
 
@@ -188,16 +182,10 @@ class MODEL(nn.Module):
                 all_dis_embeddings += [disEmbeddings]
                 all_rd_embeddings += [rdEmbeddings]
 
-        # 对所有嵌入进行加权平均（注释掉的都是加权平均的东西，没啥用，还是用原来的平均比较好）
-        # weights = t.FloatTensor([0.1, 0.08, 0.2, 0.2, 0.1, 0.08, 0.08, 0.08, 0.08])
-        # device = drugEmbedding.device  # 获取 drugEmbedding 的设备
-        # weights = weights.to(device)
-        # 对所有嵌入进行加权平均
         # drugEmbedding = t.sum(drugEmbedding * weights.view(1, -1, 1), dim=1)
         # disEmbedding = t.sum(disEmbedding * weights.view(1, -1, 1), dim=1)
         # rdEmbedding = t.sum(rdEmbedding * weights.view(1, -1, 1), dim=1)
 
-        #  现在这12（比层数多1），和9（比层数多1）应该是最好的了，不用调
         drugEmbedding1 = t.stack(all_drug_embeddings, dim=1)
         drugEmbedding = t.mean(drugEmbedding1[:, :self.args.layers+1], dim=1)
 
